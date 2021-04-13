@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<collection>
+    <worker id="4">
+        <name>Somename3</name>
+        <coordinates>
+            <x>800.0</x>
+            <y>5553.535f</y>
+        </coordinates>
+        <creationDate>2021-02-01T12:12</creationDate>
+        <salary>4200</salary>
+        <startDate>2021-03-02T12:22</startDate>
+        <endDate>2021-03-29</endDate>
+        <status>FIRED</status>
+        <person>
+            <birthday>2003-02-21T12:12</birthday>
+            <height>178</height>
+            <passportID>312313243</passportID>
+        </person>
+    </worker>
+    <worker id="2">
+        <name>Somename2</name>
+        <coordinates>
+            <x>85430.0</x>
+            <y>5553535f</y>
+        </coordinates>
+        <creationDate>2021-03-01T12:12</creationDate>
+        <salary>2543</salary>
+        <startDate>2021-03-02T22:12</startDate>
+        <endDate>2021-03-29</endDate>
+        <status>PROBATION</status>
+        <person>
+            <birthday>2003-02-21T12:12</birthday>
+            <height>178</height>
+            <passportID>312313243</passportID>
+        </person>
+    </worker>
+    <worker id="1">
+        <name>Somename1</name>
+        <coordinates>
+            <x>4320.0</x>
+            <y>0.43f</y>
+        </coordinates>
+        <creationDate>2020-01-01T12:01</creationDate>
+        <salary>42400</salary>
+        <startDate>2021-03-12T13:12</startDate>
+        <endDate></endDate>
+        <status>RECOMMENDED_FOR_PROMOTION</status>
+        <person>
+            <birthday>2004-02-21T12:12</birthday>
+            <height>148</height>
+            <passportID>312654323</passportID>
+        </person>
+    </worker>
+</collection>
