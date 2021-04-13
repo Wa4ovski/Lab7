@@ -182,7 +182,7 @@ public class Worker implements Comparable<Worker> {
                 ", startDate=" + startDate.toString()+
                 ", endDate=" + CommandProcessor.DateToString(endDate) +
                 ", status=" + status.toString() +
-                ", person=" + person.toString() +
+                ", person=" + //person.toString() +
                 '}';
     }
 
