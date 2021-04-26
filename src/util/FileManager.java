@@ -12,7 +12,10 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import exceptions.*;
 
@@ -24,6 +27,23 @@ import exceptions.*;
 public class FileManager {
     private LinkedHashSet<Worker> collection;
     private String clArg;
+
+    public static String localDateTimeToString(LocalDateTime dateTime){
+        if(dateTime == null)
+            return "";
+        ZonedDateTime zdt = dateTime.atZone(ZoneId.systemDefault());
+        long millis = zdt.toInstant().toEpochMilli();
+        Date date = new Date(millis);
+
+        //  SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        //  String s = format.format(date);
+        return new SimpleDateFormat("yyyy-MM-dd").format(date);
+    }
+    public static String dateToString(Date date){
+        if(date == null)
+            return "";
+        return new SimpleDateFormat("yyyy-MM-dd").format(date);
+    }
 
     public FileManager(LinkedHashSet<Worker> collection, String envVarName) {
         this.collection = collection;
@@ -44,9 +64,8 @@ public class FileManager {
      * Saves the collection into XML-file specified in envVar.
      */
     public void saveCollectionToFile() {
-        System.out.println("edfvrf");
         if (clArg != null) {
-            System.out.println(clArg);
+           // System.out.println(clArg);
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = null;
             try {
@@ -55,10 +74,8 @@ public class FileManager {
                 e.printStackTrace();
             }
             Document document = db.newDocument();
-            System.out.println("eded");
             Element root = document.createElement("collection");
             document.appendChild(root);
-            System.out.println("edwed2wd");
             // append the document with tickets
             for (Worker t: collection) {
                 createXMLWorkerStructure(t, document);
@@ -112,7 +129,7 @@ public class FileManager {
         // creationDate
         Element creationDate = document.createElement("creationDate");
         //DateTimeFormatter f = DateTimeFormatter.ofPattern("dd-mm-yyyy");
-        creationDate.appendChild(document.createTextNode(t.getCreationDate().toString()));
+        creationDate.appendChild(document.createTextNode(localDateTimeToString(t.getCreationDate())));
         workerRoot.appendChild(creationDate);
 
         // salary
@@ -122,12 +139,13 @@ public class FileManager {
 
         // startDate
         Element startDate = document.createElement("startDate");
-        startDate.appendChild(document.createTextNode(t.getStartDate().toString()));
+        startDate.appendChild(document.createTextNode(localDateTimeToString(t.getStartDate())));
         workerRoot.appendChild(startDate);
 
         // endDate
         Element endDate = document.createElement("endDate");
-        endDate.appendChild(document.createTextNode(t.getEndDate().toString()));
+        //System.out.println(t.getEndDate().getYear());
+        endDate.appendChild(document.createTextNode(dateToString(t.getEndDate())));
         workerRoot.appendChild(endDate);
 
         // status
@@ -218,6 +236,7 @@ public class FileManager {
                     v.setBirthday(LocalDateTime.parse(e.getElementsByTagName("birthday").item(0).getTextContent()));
                     v.setHeight(Integer.parseInt(vE.getElementsByTagName("height").item(0).getTextContent()));
                     v.setPassportID(vE.getElementsByTagName("passportID").item(0).getTextContent());
+                    t.setPerson(v);
 
                     workers.add(t);
                 }

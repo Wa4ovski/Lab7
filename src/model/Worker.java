@@ -3,6 +3,7 @@ package model;
 //import com.xml.ZonedDateTimeXmlAdapter;
 
 import util.CommandProcessor;
+import util.FileManager;
 
 
 import java.time.LocalDateTime;
@@ -177,12 +178,12 @@ public class Worker implements Comparable<Worker> {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", coordinates=" + coordinates.toString() +
-                ", creationDate=" + creationDate.toString() +
+                ", creationDate=" + FileManager.localDateTimeToString(creationDate) +
                 ", salary=" + salary +
-                ", startDate=" + startDate.toString()+
-                ", endDate=" + CommandProcessor.DateToString(endDate) +
+                ", startDate=" + FileManager.localDateTimeToString(startDate)+
+                ", endDate=" + FileManager.dateToString(endDate) +
                 ", status=" + status.toString() +
-                ", person=" + //person.toString() +
+                ", person=" + person.toString() +
                 '}';
     }
 

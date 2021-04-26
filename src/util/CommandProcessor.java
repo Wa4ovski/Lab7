@@ -1,6 +1,6 @@
 package util;
 
-import util.*;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.time.*;
-import java.time.LocalDateTime.*;
+
 
 import exceptions.*;
 
@@ -132,7 +132,6 @@ public class CommandProcessor {
     }
     public static Date parseTheDate(String s)  throws DomainViolationException {
         if (s == null || s.isEmpty()) {
-            //System.out.println("dkmcdk");
             return null;
         }
         SimpleDateFormat format = new StrictSimpleDateFormat("yyyy-MM-dd");
@@ -142,13 +141,6 @@ public class CommandProcessor {
         return date;
     }
 
-    public static String DateToString(Date date){
-        if(date == null)
-            return "null";
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        String s = format.format(date);
-        return s;
-    }
 
 
     public static long parseTheSalary(String s) throws DomainViolationException{

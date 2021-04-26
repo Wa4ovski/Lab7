@@ -1,6 +1,7 @@
 package util;
 
 import exceptions.DomainViolationException;
+import model.Person;
 import model.Worker;
 
 import java.io.File;
@@ -235,8 +236,12 @@ public class CollectionManager {
     }
 
     public void printPerson(){
+        Set<Person> set = new HashSet<>();
         for(Worker o : collection){
-            System.out.println(o.getPerson().toString());
+            set.add(o.getPerson());
+        }
+        for(Person p : set){
+            System.out.println(p.toString());
         }
     }
     /**

@@ -1,6 +1,8 @@
 package model;
 
 
+import util.FileManager;
+
 import java.util.Objects;
 import java.time.LocalDateTime;
 
@@ -69,7 +71,7 @@ public class Person implements Comparable<Person> {
     @Override
     public String toString() {
        return  "Person{" +
-                "birthday='" + birthday.toString() +
+                "birthday=" + FileManager.localDateTimeToString(birthday) +
                 ", height=" + height +
                 ", passportID='" + passportID +
                 '}';

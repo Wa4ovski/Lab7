@@ -12,6 +12,8 @@ import exceptions.*;
  * A class containing methods to update the info of objects stored both from the file or keyboard.
  */
 public class Updater {
+
+
     public static String updateName() {
         while (true) {
             System.out.print("Введите имя: ");
