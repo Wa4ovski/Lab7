@@ -8,9 +8,9 @@ public class ServerMain {
 
     public static void main(String[] args) {
         //FileManager fileManager = new FileManager();
-        Scanner scanner = new Scanner(System.in);
+
         System.out.println("Введите имя файла колллекции:");
-        CollectionManager.path  = scanner.nextLine();
+        CollectionManager.path  = new Scanner(System.in).nextLine();
         CollectionManager cm = new CollectionManager();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {

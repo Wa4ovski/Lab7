@@ -1,11 +1,10 @@
 package server;
 
-<<<<<<< Updated upstream:src/server/FileManager.java
+//<<<<<<< Updated upstream:src/server/FileManager.java
 import common.Parsers;
-=======
 import common.exceptions.AccessDeniedException;
 import common.exceptions.DomainViolationException;
->>>>>>> Stashed changes:src/util/FileManager.java
+//>>>>>>> Stashed changes:src/util/FileManager.java
 import common.model.*;
 
 import org.w3c.dom.*;
@@ -23,11 +22,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
-<<<<<<< Updated upstream:src/server/FileManager.java
+//<<<<<<< Updated upstream:src/server/FileManager.java
 import common.exceptions.*;
-
-=======
->>>>>>> Stashed changes:src/util/FileManager.java
 
 
 /**

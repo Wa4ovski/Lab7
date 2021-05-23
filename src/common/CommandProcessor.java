@@ -84,14 +84,18 @@ public class CommandProcessor {
         try {
             fileMode = true;
             File file = new File(filename);
-            System.out.println(file.getAbsoluteFile());
+            System.out.println(file.getAbsoluteFile() + " dcs");
+            System.out.println(filename);
             CommandProcessor.fileScanner = new Scanner(new BufferedInputStream(new FileInputStream(file)));
             if (!fileScanner.hasNext()) throw new NoSuchElementException();
             do {
                 commandSplit = fileScanner.nextLine().trim().split(" ");
                 if (commandSplit[0].equals("execute_script") && (scriptStack.contains(filename))) {
-                    System.out.println("Рекурсия.");
-                } else script.add(generateRequest(commandSplit));
+                    System.out.println("Рекурсия!!!'");
+                } else {
+                    System.out.println("scradd "+ commandSplit.toString());
+                    script.add(generateRequest(commandSplit));
+                }
             } while (fileScanner.hasNextLine());
         } catch (FileNotFoundException fnf) {
             System.out.println("Файл не найден.");
@@ -136,8 +140,8 @@ public class CommandProcessor {
                     return new ClearCommand().execute(commandSplit);
             //    case "save":
                 case "execute_script":
-                    executeScript(commandSplit[1]+commandSplit[2]);//ExecuteScriptCommand().execute(commandSplit);
-                    return null;
+                   // executeScript(commandSplit[1]);//ExecuteScriptCommand().execute(commandSplit);
+                    return new ExecuteScriptCommand().execute(commandSplit);
                 case "exit":
                     break;
                 case "add_if_max":
@@ -157,7 +161,7 @@ public class CommandProcessor {
                     break;
             }
         } catch (ArrayIndexOutOfBoundsException oob) {
-            System.out.println("Argument read error. Type 'help' for more.");
+            System.out.println("Argument read error. Type 'help' for morehbhb.");
         }
         return new Request(null);
     }

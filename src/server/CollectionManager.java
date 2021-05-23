@@ -11,6 +11,7 @@ import common.model.*;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class CollectionManager {
     private long nextId;
@@ -27,7 +28,7 @@ public class CollectionManager {
         collectionSet = new LinkedHashSet<Worker>();
         initDate = new Date();
         description = new HashMap<String, String>();
-        listType = collection.getClass().getSimpleName();
+        listType = collectionSet.getClass().getSimpleName();
         //File file = new File("");
         //String path = "" + file.getAbsolutePath() + "//src//xmlStorage.xml";
         fileManager = new FileManager(collectionSet, path);//"C://Java//Lab5//src//xmlStorage.xml");
@@ -60,6 +61,7 @@ public class CollectionManager {
         Set keySet = description.keySet();
         keySet.stream().forEach(key -> msg.append(key + " - " + description.get(key) + "\n"));
         return new Response(msg.toString());
+        //  Почему-то работает только на стороне сервера
     }
 
 
@@ -81,9 +83,9 @@ public class CollectionManager {
     }*/
 
     public Response showCollection() {
-        StringBuilder s = new StringBuilder();
-        collection.forEach(t -> s.append(t.toString() + "\n"));
-        return new Response(s.toString());
+            StringBuilder s = new StringBuilder();
+            collection.forEach(t -> s.append(t.toString() + "\n"));
+            return new Response(s.toString());
     }
 
     /**
@@ -127,8 +129,9 @@ public class CollectionManager {
         if (!(ifMax || ifMin) || (ifMax && (t.compareTo(collection.last()) > 0)) ||
                 (ifMin && (t.compareTo(collection.last()) > 0))) {
             collection.add(t);
+            return new Response("Добавлен объект: " + t.toString());
         }
-        return new Response("Добавлен объект: " + t.toString());
+        return new Response("Объект не добален, т. к. он не удовлетворяет условию добавления");
     }
 
     /**
@@ -185,11 +188,12 @@ public class CollectionManager {
         }
     }*/
     public Response removeById(long id) {
-
-        if (!collection.remove(collection.stream().filter(x -> x.getId() == id).findFirst().orElse(null))) { // if the element is not found remove() returns false
+        Worker worker = collection.stream().filter(w -> w.getId() == id).findFirst().orElse(null);
+        if (worker == null) { // if the element is not found remove() returns false
             return new Response("Элемент с указанным id не найден.");
         }
         else {
+            collection.remove(worker);
             Worker.removeFromIdMap(id); // remove the element from (id -> Ticket) hashmap
             return new Response("Элемент с id " + id + " успешно удалён.");
         }
@@ -268,6 +272,7 @@ public class CollectionManager {
             }
         }
         collection.removeAll(F);
+        sb.append("Всего удалено объектов:" + count + '\n');
        // System.out.println("Операция завершена. Объектов удалено: " + count);
         //collection.stream().filter(t -> t.compareTo(worker) < 0).forEach(t -> {
           //  collection.remove(t);
@@ -311,8 +316,8 @@ public class CollectionManager {
         System.out.println("Количество элементов в коллекции , значение поля endDate которых меньше заданного: " + count);
     }*/
    public Response countLessThanEndDate(Date endDate) {
-       long count = collection.stream().filter(worker -> endDate.compareTo(worker.getEndDate()) > 0).count();
-       return new Response("Объектов в коллекции имеют значение venue меньше заданного: " + count);
+       long count = collection.stream().filter(worker -> (worker.getEndDate() != null && endDate.compareTo(worker.getEndDate()) > 0)).count();
+       return new Response("Объектов в коллекции имеют значение endDate меньше заданного: " + count);
    }
    /*
     public void printPerson(){

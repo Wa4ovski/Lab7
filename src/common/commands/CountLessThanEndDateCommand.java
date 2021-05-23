@@ -29,7 +29,7 @@ public class CountLessThanEndDateCommand extends AbstractCommand {
         }catch (NullPointerException e) {
             System.out.println("aaaaa");
         }
-        return null;
+        return new Request(null);
     }
 
     public Date getEndDate(){

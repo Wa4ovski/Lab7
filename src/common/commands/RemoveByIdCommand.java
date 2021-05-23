@@ -25,7 +25,7 @@ public class RemoveByIdCommand extends AbstractCommand{
         } catch (InvalidAmountOfArgumentsException e) {
             e.printMessage();
         }
-        return null;
+        return new Request(null);
     }
 
     public long getId() {

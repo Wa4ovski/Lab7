@@ -56,8 +56,9 @@ public class Server {
             scanner = new Scanner(System.in);
             do {
                 request = getRequest();
-                System.out.println("Получена команда '" + request.getCommand().toString() + "'");
-                response = executeRequest(request);
+                System.out.println("Получена команда '" + request.getCommand().toString() + "'");//
+                response = requestManager.processClientRequest(request);//executeRequest(request);
+               // System.out.println(response.getResponseInfo());
                 System.out.println("Команда '" + request.getCommand().toString() + "' выполнена");
                 sendResponse(response);
               //  System.out.println(response.getResponseInfo());
@@ -81,6 +82,7 @@ public class Server {
 
     private void sendResponse(Response response) throws IOException {
         byte[] sendBuffer = serialize(response);
+        System.out.println("bufL" + sendBuffer.length);
         DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, address, port);
         socket.send(sendPacket);
     }

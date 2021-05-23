@@ -52,7 +52,9 @@ public class ServerRequestHandler {
                 case CLEAR:
                     return manager.clear();
                 case COUNT_LESS_THAN_END_DATE:
+
                     CountLessThanEndDateCommand countLessThanEndDate = (CountLessThanEndDateCommand) command;
+                    System.out.println(countLessThanEndDate.getEndDate());
                     return manager.countLessThanEndDate(countLessThanEndDate.getEndDate());
                 //case EXECUTE_SCRIPT:
                   //  ExecuteScriptCommand executeScriptCommand = (ExecuteScriptCommand) command;

@@ -4,8 +4,8 @@ import common.CommandProcessor;
 import common.Request;
 import common.Response;
 import common.commands.CommandType;
-import common.commands.executescriptcommand;
-import common.exceptions.ConnectionErrorException;
+import common.commands.ExecuteScriptCommand;
+
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Set;
 
+
 public class Client {
     private String host;
     private int port;
@@ -27,7 +28,7 @@ public class Client {
     private DatagramChannel channel;
     private Selector selector;
     private SocketAddress address;
-    private ByteBuffer byteBuffer = ByteBuffer.allocate(2308);
+    private ByteBuffer byteBuffer = ByteBuffer.allocate(16384);
     private Scanner scanner;
     private CommandProcessor cm;
 
@@ -83,9 +84,15 @@ public class Client {
         do {
             try {
                 String[] commandSplit = cm.readCommand();
-                request = cm.generateRequest(commandSplit);
+                request = cm.generateRequest(commandSplit); //request = null
                 if (request.isEmpty()) continue;
+//                if (request.getCommand().getCommandType().equals(CommandType.EXECUTE_SCRIPT)) {
+//                    sendRequest(request);
+//                    continue;
+//                }
+      //          sendRequest(request);
                 send(request);
+
                 byteBuffer.clear();
                 response = receive();
                 if (response == null) continue;
@@ -97,7 +104,8 @@ public class Client {
             }  catch (ClassNotFoundException exception) {
                 System.out.println("Произошла ошибка при чтении полученных данных!");
             } catch (IOException exception) {
-                System.out.println("Соединение с сервером разорвано!");
+                System.out.println("Соединение с сервером разорваноk,k,j!");
+                exception.printStackTrace();
                 try {
                     connect();
                 } catch (Exception e) {
@@ -108,21 +116,21 @@ public class Client {
         return false;
     }
 
-    public void sendRequest(Request request) throws IOException, ClassNotFoundException {
-
-        if (request.getCommand().getCommandType().equals(CommandType.EXECUTE_SCRIPT)) {
-            ExecuteScriptCommand execScr = (ExecuteScriptCommand) request.getCommand();
-            ArrayList<Request> script = cm.executeScript(execScr.getFilename());
-            for (Request cmd : script) {
-                if (cmd == null || cmd.isEmpty()) continue;
-                objectSender.writeObject(cmd);
-                getResponse();
-            }
-        }
-        else {
-            objectSender.writeObject(request);
-        }
-    }
+//    public void sendRequest(Request request) throws IOException, ClassNotFoundException {
+//
+//        if (request.getCommand().getCommandType().equals(CommandType.EXECUTE_SCRIPT)) {
+//            ExecuteScriptCommand execScr = (ExecuteScriptCommand) request.getCommand();
+//            ArrayList<Request> script = cm.executeScript(execScr.getFilename());
+//            for (Request cmd : script) {
+//                if (cmd == null || cmd.isEmpty()) continue;
+//                objectSender.writeObject(cmd);
+//                getResponse();
+//            }
+//        }
+//        else {
+//            objectSender.writeObject(request);
+//        }
+//    }
 
     public void getResponse() throws IOException, ClassNotFoundException {
         Response response;
@@ -164,6 +172,7 @@ public class Client {
 
     private void send(Request request) throws IOException, ClassNotFoundException {
         makeByteBufferToRequest(request);
+
         DatagramChannel channel = null;
         while (channel == null) {
             selector.select();
@@ -172,21 +181,25 @@ public class Client {
                 if (key.isWritable()) {
                     channel = (DatagramChannel) key.channel();
                     if (request.getCommand().getCommandType().equals(CommandType.EXECUTE_SCRIPT)) {
+                        System.out.println("aaaaa");
                         ExecuteScriptCommand execScr = (ExecuteScriptCommand) request.getCommand();
                         ArrayList<Request> script = cm.executeScript(execScr.getFilename());
-                        ByteBuffer execScrBuffer = ByteBuffer.allocate(2308);
+                        ByteBuffer execScrBuffer = ByteBuffer.allocate(16384);
+                        System.out.println("scrsize " + script.size());
                         for (Request cmd : script) {
+                            System.out.println("повтор!");
                             if (cmd == null || cmd.isEmpty()) continue;
                             execScrBuffer.put(serialize(cmd));
                             execScrBuffer.flip();
                             channel.write(execScrBuffer);
                             channel.register(selector, SelectionKey.OP_READ);
-                            receive().getResponseInfo();
+                            //System.out.println(receive().getResponseInfo());
                             channel.register(selector, SelectionKey.OP_WRITE);
                             byteBuffer.clear();
                             execScrBuffer.clear();
                         }
                     }
+
                     else {
                         channel.write(byteBuffer);
                     }
@@ -210,6 +223,7 @@ public class Client {
                     channel.read(byteBuffer);
                     byteBuffer.flip();
                     channel.register(selector, SelectionKey.OP_WRITE);
+                   // byteBuffer.clear();
                     break;
                 }
             }

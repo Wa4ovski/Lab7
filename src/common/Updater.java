@@ -3,15 +3,14 @@ package common;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Scanner;
-<<<<<<< Updated upstream:src/common/Updater.java
+//<<<<<<< Updated upstream:src/common/Updater.java
 import common.model.*;
 import common.exceptions.*;
-=======
 
 import common.exceptions.DomainViolationException;
 import common.exceptions.InvalidAmountOfArgumentsException;
 import common.model.*;
->>>>>>> Stashed changes:src/util/Updater.java
+//>>>>>>> Stashed changes:src/util/Updater.java
 
 /**
  * A class containing methods to update the info of objects stored both from the file or keyboard.

@@ -1,6 +1,4 @@
 package common.commands;
-
-
 import common.*;
 import common.exceptions.InvalidAmountOfArgumentsException;
 
@@ -15,10 +13,10 @@ public class HelpCommand extends AbstractCommand {
     public Request execute(String[] commandSplit) {
         try {
             Parsers.verify(commandSplit, 0);
-            return getRequest();
+          //  return getRequest();
         } catch (InvalidAmountOfArgumentsException e) {
             e.printMessage();
         }
-        return new Request(null);
+        return getRequest();// new Request(null);
     }
 }
