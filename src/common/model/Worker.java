@@ -1,12 +1,6 @@
 package common.model;
-
-//import com.xml.ZonedDateTimeXmlAdapter;
-
-<<<<<<< Updated upstream:src/common/model/Worker.java
 import server.FileManager;
-=======
 import util.FileManager;
->>>>>>> Stashed changes:src/model/Worker.java
 
 
 import java.io.Serializable;
