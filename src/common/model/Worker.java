@@ -59,11 +59,11 @@ public class Worker implements Comparable<Worker>, Serializable {
 
     private static long nextId;
 
-    private static HashMap<Long, Worker> ticketIdMap;
+    private static HashMap<Long, Worker> workerIdMap;
 
     static {
         nextId = 1;
-        ticketIdMap = new HashMap<>();
+        workerIdMap = new HashMap<>();
     }
 
     {
@@ -71,13 +71,13 @@ public class Worker implements Comparable<Worker>, Serializable {
         nextId += 1;
         creationDate = LocalDateTime.now();
         coordinates = new Coordinates();
-        ticketIdMap.put(this.id, this);
+        workerIdMap.put(this.id, this);
     }
 
     public void setId(Long id){
-        ticketIdMap.remove(this.id);
+        workerIdMap.remove(this.id);
         this.id = id;
-        ticketIdMap.put(this.id, this);
+        workerIdMap.put(this.id, this);
         //System.out.println(id);
 
     }
@@ -86,12 +86,16 @@ public class Worker implements Comparable<Worker>, Serializable {
         nextId = 1;
     }
 
+    public static HashMap<Long, Worker> getWorkerIdMap() {
+        return workerIdMap;
+    }
+
     public static Worker getWorkerById(long id) {
-        return ticketIdMap.get(id);
+        return workerIdMap.get(id);
     }
 
     public static void removeFromIdMap(long id) {
-        ticketIdMap.remove(id);
+        workerIdMap.remove(id);
     }
 
     public void setName(String name) {

@@ -166,7 +166,7 @@ public class FileManager {
         Element vBirthday = document.createElement("birthday");
         Element vHeight = document.createElement("height");
         Element vPassportID = document.createElement("passportID");
-        vBirthday.appendChild(document.createTextNode(v.getBirthday().toString()));
+        vBirthday.appendChild(document.createTextNode(localDateTimeToString(v.getBirthday())));
         vHeight.appendChild(document.createTextNode(String.valueOf(v.getHeight())));
         vPassportID.appendChild(document.createTextNode(v.getPassportID()));
         person.appendChild(vBirthday);
@@ -228,19 +228,23 @@ public class FileManager {
                     Element coordinates = (Element) (e.getElementsByTagName("coordinates").item(0));
                     t.setCoordinates(new Coordinates(Double.parseDouble(coordinates.getElementsByTagName("x").item(0).getTextContent()),
                             Float.parseFloat(coordinates.getElementsByTagName("y").item(0).getTextContent())));
-                    t.setCreationDate(LocalDateTime.parse(e.getElementsByTagName("creationDate").item(0).getTextContent()));
+                   // t.setCreationDate(LocalDateTime.parse(e.getElementsByTagName("creationDate").item(0).getTextContent()));
+                   // try{
+                    t.setCreationDate(Parsers.parseTheLocalDateTime(e.getElementsByTagName("creationDate").item(0).getTextContent()));
                     t.setSalary(Long.parseLong(e.getElementsByTagName("salary").item(0).getTextContent()));
-                    t.setStartDate(LocalDateTime.parse(e.getElementsByTagName("startDate").item(0).getTextContent()));
-                    try{t.setEndDate(Parsers.parseTheDate((e.getElementsByTagName("endDate").item(0).getTextContent()))) ;}
-                    catch (DomainViolationException exx){
-                        exx.printMessage();
-                    }
+                    //t.setStartDate(LocalDateTime.parse(e.getElementsByTagName("startDate").item(0).getTextContent()));
+                    t.setStartDate(Parsers.parseTheLocalDateTime(e.getElementsByTagName("startDate").item(0).getTextContent()));
+                    t.setEndDate(Parsers.parseTheDate((e.getElementsByTagName("endDate").item(0).getTextContent()))) ;
+                    //} catch (DomainViolationException exx){
+                    //    exx.printMessage();
+                    //}
                  //   t.setRefundable(Boolean.parseBoolean(e.getElementsByTagName("refundable").item(0).getTextContent()));
                     t.setStatus(Status.valueOf(e.getElementsByTagName("status").item(0).getTextContent()));
                     // person
                     Element vE = (Element) (e.getElementsByTagName("person").item(0));
                     Person v = new Person();
-                    v.setBirthday(LocalDateTime.parse(e.getElementsByTagName("birthday").item(0).getTextContent()));
+                    //v.setBirthday(LocalDateTime.parse(e.getElementsByTagName("birthday").item(0).getTextContent()));
+                    v.setBirthday(Parsers.parseTheLocalDateTime(e.getElementsByTagName("birthday").item(0).getTextContent()));
                     v.setHeight(Integer.parseInt(vE.getElementsByTagName("height").item(0).getTextContent()));
                     v.setPassportID(vE.getElementsByTagName("passportID").item(0).getTextContent());
                     t.setPerson(v);
@@ -261,6 +265,8 @@ public class FileManager {
             System.out.println("Ошибка парсинга. Проверьте правильность введенных данных.");
         } catch (NullPointerException e) {
             System.out.println("Ошибка парсинга. Проверьте, что файл существует и все необходимые поля заполнены.");
+        }catch (DomainViolationException exx){
+            exx.printMessage();
         }
 
         System.out.println("Объектов загружено: " + workers.size());

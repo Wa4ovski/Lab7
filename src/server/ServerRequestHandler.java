@@ -10,10 +10,15 @@ public class ServerRequestHandler {
 
     private ObjectInputStream clientReader;
     private ObjectOutputStream clientSender;
+
     private CollectionManager manager;
 
     public ServerRequestHandler(CollectionManager manager) {
         this.manager = manager;
+    }
+
+    public CollectionManager getManager() {
+        return manager;
     }
 
     public ObjectInputStream getClientReader() {

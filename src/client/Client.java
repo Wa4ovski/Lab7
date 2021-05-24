@@ -181,19 +181,27 @@ public class Client {
                 if (key.isWritable()) {
                     channel = (DatagramChannel) key.channel();
                     if (request.getCommand().getCommandType().equals(CommandType.EXECUTE_SCRIPT)) {
+
                         System.out.println("aaaaa");
                         ExecuteScriptCommand execScr = (ExecuteScriptCommand) request.getCommand();
                         ArrayList<Request> script = cm.executeScript(execScr.getFilename());
                         ByteBuffer execScrBuffer = ByteBuffer.allocate(16384);
                         System.out.println("scrsize " + script.size());
                         for (Request cmd : script) {
+
                             System.out.println("повтор!");
                             if (cmd == null || cmd.isEmpty()) continue;
                             execScrBuffer.put(serialize(cmd));
                             execScrBuffer.flip();
                             channel.write(execScrBuffer);
                             channel.register(selector, SelectionKey.OP_READ);
+                            //System.out.println("sxs");
                             //System.out.println(receive().getResponseInfo());
+                            byteBuffer.clear();
+                            channel.read(byteBuffer);
+                            byteBuffer.flip();
+                          //  getResponse();
+                            System.out.println(deserialize().getResponseInfo());
                             channel.register(selector, SelectionKey.OP_WRITE);
                             byteBuffer.clear();
                             execScrBuffer.clear();

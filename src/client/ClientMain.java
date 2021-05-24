@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class ClientMain {
     public static void main(String[] args) {
         System.out.println("Клиент запущен");
-        Client client = new Client("localhost", 2308, new CommandProcessor());
+        Client client = new Client("localhost", 2408, new CommandProcessor());
         client.start();
     }
 }

@@ -15,12 +15,14 @@ public class Server {
     private ServerRequestHandler requestManager;
     private DatagramSocket socket;
     private InetAddress address;
-    private Scanner scanner;
+    private CollectionManager collectionManager;
+    private  Scanner scanner;
    // private CommandProcessor cp;
 
     public Server(int port, ServerRequestHandler requestManager) {
         this.port = port;
         this.requestManager = requestManager;
+        collectionManager = requestManager.getManager();
     }
 
     public void run() {
@@ -30,14 +32,17 @@ public class Server {
         Runnable userInput = () -> {
             try {
                 while (true) {
-                    String command = scanner.nextLine();
-                    String[] commandSplit = command.trim().split(" "); // remove extra-spaces and split the command from the argument
-                    if (commandSplit[0].equals("save")) {
-                        System.out.println("Сервер не может сам принимать такую команду!");
-                        return;
+                    if (!scanner.hasNext()) continue;
+                    String input = scanner.nextLine();
+                    if (input.equals("exit")) {
+                        collectionManager.saveToFile();
+                        System.out.println("Завершение работы сервера...");
+                        System.exit(0);
+                    } else if (input.equals("save")) {
+                        collectionManager.saveToFile();
+                    } else {
+                        System.out.println("Неверная команада.");
                     }
-                    Response response = requestManager.processClientRequest(new CommandProcessor().generateRequest(commandSplit));
-                    System.out.println(response.getResponseInfo());
                 }
             } catch (Exception e) {}
         };
@@ -48,12 +53,40 @@ public class Server {
         }
     }
 
+
+//public void run() {
+//    System.out.println("Запуск сервера!");
+//    boolean processStatus = true;
+//    Scanner scanner = new Scanner(System.in);
+//    do {
+//        if (!scanner.hasNext()) continue;
+//        String input = scanner.nextLine();
+//        if (input.equals("exit")) {
+//            collectionManager.saveToFile();
+//            System.out.println("Завершение работы сервера...");
+//            System.exit(0);
+//        }
+//        else if (input.equals("save")) {
+//            collectionManager.saveToFile();
+//        }
+//        else {
+//            System.out.println("Неверная команада.");
+//        }
+//
+//    } while (scanner.hasNext());
+//   // Thread thread = new Thread(userInput);
+//    //    thread.start();
+//        while (processStatus) {
+//            processStatus = processingClientRequest();
+//        }
+//}
+
     private boolean processingClientRequest(){
         Request request = null;
         Response response = null;
         try {
-            socket = new DatagramSocket(2308);
-            scanner = new Scanner(System.in);
+            socket = new DatagramSocket(2408);
+            Scanner scanner = new Scanner(System.in);
             do {
                 request = getRequest();
                 System.out.println("Получена команда '" + request.getCommand().toString() + "'");//
@@ -82,7 +115,6 @@ public class Server {
 
     private void sendResponse(Response response) throws IOException {
         byte[] sendBuffer = serialize(response);
-        System.out.println("bufL" + sendBuffer.length);
         DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, address, port);
         socket.send(sendPacket);
     }
