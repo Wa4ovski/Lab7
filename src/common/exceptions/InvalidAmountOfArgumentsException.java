@@ -1,9 +1,4 @@
 package common.exceptions;
-<<<<<<< Updated upstream:src/common/exceptions/InvalidAmountOfArgumentsException.java
-
-=======
->>>>>>> Stashed changes:src/exceptions/InvalidAmountOfArgumentsException.java
-
 /**
  * Generated when user types wrong amount of arguments for a command.
  */
