@@ -1,16 +1,8 @@
 package server;
-
-//<<<<<<< Updated upstream:src/server/CollectionManager.java
-import common.Parsers;
 import common.*;
-import common.Updater;
-import common.exceptions.*;
-
-import server.CollectionManager;
 import common.model.*;
-import java.io.File;
 import java.util.*;
-import java.util.stream.Stream;
+
 
 public class CollectionManager {
     private long nextId;
@@ -33,13 +25,8 @@ public class CollectionManager {
         fileManager = new FileManager(collectionSet, path);//"C://Java//Lab5//src//xmlStorage.xml");
         collection.addAll(collectionSet);
         load();
-        System.out.println(Worker.getWorkerIdMap().size() + " HJ " + Worker.getWorkerIdMap().toString());//forEach((aLong, worker) -> nextId = (aLong > nextId ? aLong : nextId));
+        //System.out.println(Worker.getWorkerIdMap().size() + " HJ " + Worker.getWorkerIdMap().toString());
         Worker.getWorkerIdMap().forEach((aLong, worker) -> nextId = (aLong > nextId ? aLong : nextId));
-       // ArrayList <Long> list = map.keySet().;
-       // SortedSet <Long> set = new TreeSet<>();
-       // set.addAll(map.keySet());
-      //  nextId = set.last();
-       // System.out.println(set.toString() + "gfdsa " + nextId);
         description.put("help", "вывести справку по доступным командам");//!
         description.put("info", "вывести в стандартный поток вывода информацию о коллекции (тип, дата инициализации, количество элементов и т.д."); // done
         description.put("show", "вывести в стандартный поток вывода все элементы коллекции в строковом представлении"); // done
