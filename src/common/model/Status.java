@@ -1,9 +1,5 @@
 package common.model;
-<<<<<<< Updated upstream:src/common/model/Status.java
-
 import java.io.Serializable;
-=======
->>>>>>> Stashed changes:src/model/Status.java
 
 /**
  * Status enum class. Contains four values.
