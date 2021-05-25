@@ -55,7 +55,7 @@ public class ServerRequestHandler {
                     t.setId(manager.generateId());
                     return manager.add(t, addCommand.ifMax(), addCommand.ifMin());
                 case CLEAR:
-                    return manager.clear();
+                    //return manager.clear();
                 case COUNT_LESS_THAN_END_DATE:
 
                     CountLessThanEndDateCommand countLessThanEndDate = (CountLessThanEndDateCommand) command;
@@ -73,7 +73,7 @@ public class ServerRequestHandler {
                     return manager.help();
                 case REMOVE_LOWER:
                     RemoveLowerCommand removeLowerCommand = (RemoveLowerCommand) command;
-                    return manager.removeLower(removeLowerCommand.getWorker());
+                    return manager.removeLower(removeLowerCommand.getWorker(), new String());
                 case REMOVE_BY_ID:
                     RemoveByIdCommand removeByIdCommand = (RemoveByIdCommand) command;
                     return manager.removeById(removeByIdCommand.getId());

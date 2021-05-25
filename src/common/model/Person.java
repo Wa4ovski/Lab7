@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class Person implements Comparable<Person>, Serializable {
     private static final long serialVersionUID = 3888450949293392826L;
     private LocalDateTime birthday; //Поле не может быть null
-    private long height; //Значение поля должно быть больше 0
+    private int height; //Значение поля должно быть больше 0
     private String passportID; //Значение этого поля должно быть уникальным, Длина строки не должна быть больше 38, Поле не может быть null
 
     /**
@@ -31,7 +31,7 @@ public class Person implements Comparable<Person>, Serializable {
     public Person() {
     }
 
-    public void setHeight(long height) {
+    public void setHeight(int height) {
         this.height = height;
     }
 
@@ -47,7 +47,7 @@ public class Person implements Comparable<Person>, Serializable {
         return birthday;
     }
 
-    public long getHeight() {
+    public int getHeight() {
         return height;
     }
 

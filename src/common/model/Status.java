@@ -1,6 +1,7 @@
 package common.model;
 import java.io.Serializable;
 
+
 /**
  * Status enum class. Contains four values.
  */

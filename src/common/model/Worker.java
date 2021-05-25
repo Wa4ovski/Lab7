@@ -1,6 +1,7 @@
 package common.model;
+
+
 import server.FileManager;
-import util.FileManager;
 
 
 import java.io.Serializable;
@@ -47,26 +48,37 @@ public class Worker implements Comparable<Worker>, Serializable {
         this.person = person;
     }
 
+    public Worker(long id, String name, Coordinates coordinates, long salary, LocalDateTime startDate, Date endDate, Status status, Person person) {
+        this.id = id;
+        this.name = name;
+        this.coordinates = coordinates;
+        this.salary = salary;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.status = status;
+        this.person = person;
+    }
+
     public Worker() {
     }
 
 
-    private static long nextId;
+   // private static long nextId;
 
     private static HashMap<Long, Worker> workerIdMap;
 
     static {
-        nextId = 1;
+        //nextId = 1;
         workerIdMap = new HashMap<>();
     }
 
-    {
-        this.id = nextId;
-        nextId += 1;
-        creationDate = LocalDateTime.now();
-        coordinates = new Coordinates();
-        workerIdMap.put(this.id, this);
-    }
+//    {
+//        this.id = nextId;
+//        nextId += 1;
+//        creationDate = LocalDateTime.now();
+//        coordinates = new Coordinates();
+//        workerIdMap.put(this.id, this);
+//    }
 
     public void setId(Long id){
         workerIdMap.remove(this.id);
@@ -76,12 +88,16 @@ public class Worker implements Comparable<Worker>, Serializable {
 
     }
 
-    public static void resetId() {
-        nextId = 1;
-    }
+//    public static void resetId() {
+//        nextId = 1;
+//    }
 
     public static HashMap<Long, Worker> getWorkerIdMap() {
         return workerIdMap;
+    }
+
+    public static void addToIdMap(Worker worker){
+        workerIdMap.put(worker.getId(), worker);
     }
 
     public static Worker getWorkerById(long id) {

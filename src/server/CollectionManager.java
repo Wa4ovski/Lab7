@@ -1,8 +1,14 @@
 package server;
 import common.*;
+import common.exceptions.InsufficientPermissionException;
 import common.model.*;
 import java.util.*;
 
+
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class CollectionManager {
     private long nextId;
@@ -14,19 +20,27 @@ public class CollectionManager {
     private FileManager fileManager;
     static public String path;
 
+    private ReadWriteLock collectionLocker;
+    private DatabaseHandler dbHandler;
+
+    public CollectionManager(DatabaseHandler dbHandler) {
+        this.dbHandler = dbHandler;
+    }
+
     {
 
         collectionSet = new LinkedHashSet<Worker>();
         initDate = new Date();
         description = new HashMap<String, String>();
         listType = collectionSet.getClass().getSimpleName();
+        collectionLocker = new ReentrantReadWriteLock();
         //File file = new File("");
         //String path = "" + file.getAbsolutePath() + "//src//xmlStorage.xml";
-        fileManager = new FileManager(collectionSet, path);//"C://Java//Lab5//src//xmlStorage.xml");
-        collection.addAll(collectionSet);
-        load();
+        //fileManager = new FileManager(collectionSet, path);//"C://Java//Lab5//src//xmlStorage.xml");
+        //collection.addAll(collectionSet);
+        //load();
         //System.out.println(Worker.getWorkerIdMap().size() + " HJ " + Worker.getWorkerIdMap().toString());
-        Worker.getWorkerIdMap().forEach((aLong, worker) -> nextId = (aLong > nextId ? aLong : nextId));
+        //Worker.getWorkerIdMap().forEach((aLong, worker) -> nextId = (aLong > nextId ? aLong : nextId));
         description.put("help", "вывести справку по доступным командам");//!
         description.put("info", "вывести в стандартный поток вывода информацию о коллекции (тип, дата инициализации, количество элементов и т.д."); // done
         description.put("show", "вывести в стандартный поток вывода все элементы коллекции в строковом представлении"); // done
@@ -43,6 +57,12 @@ public class CollectionManager {
         description.put("sum_of_salary", "вывести сумму значений поля salary для всех элементов коллекции"); // !!! +
         description.put("count_less_than_end_date", "вывести количество элементов, значение поля endDate которых меньше заданного | args: <endDate>"); // !!! +
         description.put("print_field_ascending_person", "вывести значения поля person всех элементов в порядке возрастания"); // !!!
+    }
+
+    public void init() {
+        collectionSet = dbHandler.loadCollectionFromDB();
+        collection.addAll(collectionSet);
+        //listType = collection.getClass().getSimpleName();
     }
 
     /**
@@ -118,12 +138,17 @@ public class CollectionManager {
         }
     }*/
     public Response add(Worker t, boolean ifMax, boolean ifMin) {
-        if (!(ifMax || ifMin) || (ifMax && (t.compareTo(collection.last()) > 0)) ||
+        collectionLocker.writeLock().lock();
+        try{
+            if (!(ifMax || ifMin) || (ifMax && (t.compareTo(collection.last()) > 0)) ||
                 (ifMin && (t.compareTo(collection.last()) > 0))) {
-            collection.add(t);
+                collection.add(t);
+            }
             return new Response("Добавлен объект: " + t.toString());
+        } finally {
+            collectionLocker.readLock().unlock();
         }
-        return new Response("Объект не добален, т. к. он не удовлетворяет условию добавления");
+       // return new Response("Объект не добален, т. к. он не удовлетворяет условию добавления");
     }
 
     /**
@@ -161,8 +186,13 @@ public class CollectionManager {
         }
     }*/
     public Response updateId(long id, Worker newT) {
-        collection.remove(Worker.getWorkerById(id));
-        collection.add(newT);
+        collectionLocker.writeLock().lock();
+        try {
+            collection.remove(Worker.getWorkerById(id));
+            collection.add(newT);
+        }finally {
+            collectionLocker.readLock().unlock();
+        }
         return new Response("Элемент с указанным id успешно обновлён.");
     }
 
@@ -180,14 +210,18 @@ public class CollectionManager {
         }
     }*/
     public Response removeById(long id) {
-        Worker worker = collection.stream().filter(w -> w.getId() == id).findFirst().orElse(null);
-        if (worker == null) { // if the element is not found remove() returns false
-            return new Response("Элемент с указанным id не найден.");
-        }
-        else {
-            collection.remove(worker);
-            Worker.removeFromIdMap(id); // remove the element from (id -> Ticket) hashmap
-            return new Response("Элемент с id " + id + " успешно удалён.");
+        collectionLocker.writeLock().lock();
+        try {
+            Worker worker = collection.stream().filter(w -> w.getId() == id).findFirst().orElse(null);
+            if (worker == null) { // if the element is not found remove() returns false
+                return new Response("Элемент с указанным id не найден.");
+            } else {
+                collection.remove(worker);
+                Worker.removeFromIdMap(id); // remove the element from (id -> Ticket) hashmap
+                return new Response("Элемент с id " + id + " успешно удалён.");
+            }
+        } finally {
+            collectionLocker.readLock().unlock();
         }
     }
 
@@ -208,11 +242,11 @@ public class CollectionManager {
         Worker.resetId(); // reset the id counter
         System.out.println("Коллекция очищена.");
     }*/
-    public Response clear() {
-        collection.clear(); // clear the collection
-        Worker.resetId(); // reset the id counter
-        return new Response("Коллекция успешно очищена.");
-    }
+//    public Response clear() {
+//        collection.clear(); // clear the collection
+//        Worker.resetId(); // reset the id counter
+//        return new Response("Коллекция успешно очищена.");
+//    }
     /**
      * Saves the collection to XML-File via FileManager
      */
@@ -251,28 +285,46 @@ public class CollectionManager {
         collection.removeAll(F);
         System.out.println("Операция завершена. Объектов удалено: " + count);
     }*/
-    public Response removeLower(Worker worker) {
+    public Response removeLower(Worker worker, String initiator) {
         int count = 0;
-        LinkedHashSet <Worker> F = new LinkedHashSet<>();
-        StringBuilder sb = new StringBuilder();
-        for (Worker t: collection) {
+        collectionLocker.writeLock().lock();
+        try{
+        LinkedHashSet<Worker> F = new LinkedHashSet<>();
+        //StringBuilder sb = new StringBuilder();
+        for (Worker t : collection) {
             if (t.compareTo(worker) < 0) {
-                F.add(t);
-                Worker.removeFromIdMap(t.getId());
-                count += 1;
-                sb.append("Удалён объект: " + t.toString()+'\n');
+//                try {
+//                    F.add(t);
+//                    dbHandler.removeWorkerByID(t.getId(), );
+//                    Worker.removeFromIdMap(t.getId());
+//                    count += 1;
+//                   // sb.append("Удалён объект: " + t.toString() + '\n');
+//                } catch (InsufficientPermissionException e) {
+//                } catch (SQLException e) {
+//                    e.printStackTrace();
+//                }
+
             }
         }
         collection.removeAll(F);
-        sb.append("Всего удалено объектов:" + count + '\n');
+        return new Response(String.valueOf(count), true);
+        }finally {
+            collectionLocker.writeLock().unlock();
+        }
+           // sb.append("Всего удалено объектов:" + count + '\n');
+            //return new Response(sb.toString());
+    }
+
+
+
        // System.out.println("Операция завершена. Объектов удалено: " + count);
         //collection.stream().filter(t -> t.compareTo(worker) < 0).forEach(t -> {
           //  collection.remove(t);
             //Worker.removeFromIdMap(t.getId());
             //sb.append("Удален объект: " + t.toString() + "\n");
        // });
-        return new Response(sb.toString());
-    }
+
+
 
     /*public void sumOfSalary(){
         long sum = 0;

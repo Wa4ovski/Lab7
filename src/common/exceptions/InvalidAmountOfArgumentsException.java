@@ -1,4 +1,6 @@
 package common.exceptions;
+
+
 /**
  * Generated when user types wrong amount of arguments for a command.
  */
