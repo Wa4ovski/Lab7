@@ -19,12 +19,12 @@ public class DatabaseHandler {
     private static final String VALIDATE_USER_REQUEST = "SELECT COUNT(*) AS count FROM USERS WHERE username = ? AND password = ?";
     private static final String FIND_USERNAME_REQUEST = "SELECT COUNT(*) AS count FROM USERS WHERE username = ?";
     private static final String ADD_WORKER_REQUEST = "INSERT INTO WORKERS (name, x_coord, y_coord, salary, start_date, " +
-            "end_date, status, birthday, height, passport, owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";//+
+            "end_date, status, birthday, height, passport, owner, id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";//+
     private static final String LOAD_WORKERS_REQUEST = "SELECT * FROM WORKERS";//+
-    private static final String GET_MAX_WORKER_ID_REQUEST = "SELECT last_value AS id FROM Worker_id_seq";//?
+    private static final String GET_MAX_WORKER_ID_REQUEST = "SELECT MAX(id) FROM workers";//"SELECT last_value AS id FROM Worker_id_seq";//?
     private static final String CHECK_ID_PRESENT_REQUEST = "SELECT COUNT(*) AS count FROM WORKERS WHERE id = ?";//+
     private static final String REMOVE_BY_WORKER_ID_REQUEST = "DELETE FROM WORKERS WHERE id = ?";//+
-    private static final String WORKERS_BY_OWNER_REQUEST = "SELECT (*) FROM TICKETS WHERE owner = ?";
+    private static final String TICKETS_BY_OWNER_REQUEST = "SELECT (*) FROM TICKETS WHERE owner = ?";
     private static final String IS_OWNER_REQUEST = "SELECT COUNT(*) FROM WORKERS WHERE id = ? AND owner = ?";//+
     private static final String UPDATE_NAME_BY_ID_REQUEST = "UPDATE WORKERS SET name = ? WHERE id = ?";//+
     private static final String UPDATE_SALARY_BY_ID_REQUEST = "UPDATE WORKERS SET salary = ? WHERE id = ?";//+
@@ -92,16 +92,15 @@ public class DatabaseHandler {
     }
 
     private Worker extractWorkerFromResult(ResultSet result) throws SQLException, InvalidDBOutputException, DomainViolationException {
-        long workerId = result.getLong("id");
+        long workerId = result.getInt("id");
         if (workerId < 1) throw new InvalidDBOutputException();
         String workerName = result.getString("name");
         if (workerName == null || workerName.isEmpty()) throw new InvalidDBOutputException();
         double x = result.getDouble("x_coord");
         float y = result.getFloat("y_coord");
         long salary = result.getLong("salary"); //!
-        //LocalDate date = result.getDate("creationdate").toLocalDate();
+       // LocalDate creationDate = result.getDate("creation_date").toLocalDate();
         LocalDateTime startDate = Parsers.parseTheLocalDateTime(result.getString("start_date"));//!
-
         java.util.Date endDate = Parsers.parseTheDate(result.getString("end_date"));
         Status status = Status.valueOf(result.getString("status"));//!
 
@@ -127,25 +126,27 @@ public class DatabaseHandler {
         Date endDate = t.getEndDate();
         Status status = t.getStatus();
        Person person = t.getPerson();
+       Long id = t.getId();
 
         try {
             connection.setAutoCommit(false);
             connection.setSavepoint();
 
-            PreparedStatement addToTicketsStatement = connection.prepareStatement(ADD_WORKER_REQUEST);
-            addToTicketsStatement.setString(1, name);
-            addToTicketsStatement.setDouble(2, coordinates.getX());
-            addToTicketsStatement.setFloat(3, coordinates.getY());
-            addToTicketsStatement.setLong(4, salary);
-            addToTicketsStatement.setString(5, FileManager.localDateTimeToString(startDate));
-            addToTicketsStatement.setString(6, FileManager.dateToString(endDate));
-            addToTicketsStatement.setString(7, status.toString());
-            addToTicketsStatement.setString(8, FileManager.localDateTimeToString(person.getBirthday()));
-            addToTicketsStatement.setInt(9, person.getHeight());
-            addToTicketsStatement.setString(10, person.getPassportID());
-            addToTicketsStatement.setString(11, owner);
-            addToTicketsStatement.executeUpdate();
-            addToTicketsStatement.close();
+            PreparedStatement addToWorkersStatement = connection.prepareStatement(ADD_WORKER_REQUEST);
+            addToWorkersStatement.setString(1, name);
+            addToWorkersStatement.setDouble(2, coordinates.getX());
+            addToWorkersStatement.setFloat(3, coordinates.getY());
+            addToWorkersStatement.setLong(4, salary);
+            addToWorkersStatement.setString(5, FileManager.localDateTimeToString(startDate));
+            addToWorkersStatement.setString(6, FileManager.dateToString(endDate));
+            addToWorkersStatement.setString(7, status.toString());
+            addToWorkersStatement.setString(8, FileManager.localDateTimeToString(person.getBirthday()));
+            addToWorkersStatement.setInt(9, person.getHeight());
+            addToWorkersStatement.setString(10, person.getPassportID());
+            addToWorkersStatement.setString(11, owner);
+            addToWorkersStatement.setLong(12, id);
+            addToWorkersStatement.executeUpdate();
+            addToWorkersStatement.close();
 
             connection.commit();
             connection.setAutoCommit(true);
@@ -243,8 +244,14 @@ public class DatabaseHandler {
         try {
             PreparedStatement getMaxId = connection.prepareStatement(GET_MAX_WORKER_ID_REQUEST);
             ResultSet result = getMaxId.executeQuery();
-            if (result.next()) return result.getLong("id");
-            else return 0;
+            if (result.next()) {
+                //System.out.println(result.getLong("id"));
+                return result.getLong(1);
+            }
+            else {
+                System.out.println("F");
+                return 0;
+            }
         } catch (SQLException e) {
             System.out.println("Ошибка генерации id");
         }

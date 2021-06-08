@@ -132,6 +132,8 @@ public class CommandProcessor {
                     return new ShowCommand().execute(commandSplit);
                 case "add":
                     return new AddCommand(false, false).execute(commandSplit);
+                case "auth":
+                    return new AuthCommand().execute(commandSplit);
                 case "update":
                     return new UpdateIdCommand().execute(commandSplit);
                 case "remove_by_id":

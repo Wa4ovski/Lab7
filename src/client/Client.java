@@ -3,6 +3,7 @@ package client;
 import common.CommandProcessor;
 import common.Request;
 import common.Response;
+import common.commands.AuthCommand;
 import common.commands.CommandType;
 import common.commands.ExecuteScriptCommand;
 
@@ -21,6 +22,8 @@ import java.util.Set;
 
 
 public class Client {
+    private final static int MAX_RECONNECTION_ATTEMPTS = 5;
+    private final static int RECONNECTION_TIMEOUT_IN_SECONDS = 5;
     private String host;
     private int port;
     private ObjectOutputStream objectSender;
@@ -30,33 +33,37 @@ public class Client {
     private SocketAddress address;
     private ByteBuffer byteBuffer = ByteBuffer.allocate(16384);
     private Scanner scanner;
-    private CommandProcessor cm;
+    private CommandProcessor cp;
+
+    private String serverToken;
+    private String username;
+    private boolean isAuthed = false;
+   // private ObjectInputStream ois;
+    //private ObjectOutputStream oos;
 
 
-    public Client(String host, int port, CommandProcessor cm) {
+
+    public Client(String host, int port, CommandProcessor cp) {
         this.host = host;
         this.port = port;
-        this.cm = cm;
+        this.cp = cp;
     }
 
     public void start() {
-        try {
-            boolean isRunning = true;
-            while (isRunning) {
-                connect();
-                isRunning = exchangeDataWithServer();
-            }
-            if (channel != null) channel.close();
-            System.out.println("Работа клиента завершена.");
-        } catch (IOException exception) {
-            System.out.println("Произошла ошибка при попытке завершить соединение с сервером!");
-        }
+        connect();
+        System.out.println("Для выполнения команд требуется авторизация: auth reg/login <username>");
+        exchangeDataWithServer();
+        System.out.println("Клиент завершил свою работу.");
     }
 
-    public void connect() {
-        boolean tryingToConnect = true;
+    public boolean connect() {
+        int reconnectionAttempt = 0;
         do {
             try {
+                if (reconnectionAttempt > 0) {
+                    Thread.sleep(RECONNECTION_TIMEOUT_IN_SECONDS * 1000);
+                    System.out.printf("Пытаюсь переподключиться (попытка %d)\n", reconnectionAttempt);
+                }
                 channel = DatagramChannel.open();
                 address = new InetSocketAddress("localhost", port);
                 channel.connect(address);
@@ -64,56 +71,99 @@ public class Client {
                 selector = Selector.open();
                 channel.register(selector, SelectionKey.OP_WRITE);
                 System.out.println("Подключение установлено.");
-                tryingToConnect = false;
+                System.out.println("Готов к передаче данных.");
+                reconnectionAttempt = 0;
+                return true;
                 //objectSender = new ObjectOutputStream(socketChannel.socket().getOutputStream());
                 //objectReader = new ObjectInputStream(socketChannel.socket().getInputStream());
-                System.out.println("Готов к передаче данных.");
-            } catch (IllegalArgumentException e) {
-                System.out.println("Проверьте правильность введенного адреса.");
-            } catch (IOException e) {
-                System.out.println("Ошибка при соединении с сервером.");
+
+            }catch (IOException e) {
+                System.out.println("Ошибка подключения.");
+                reconnectionAttempt++;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } while (tryingToConnect);
-
-
+            catch (IllegalArgumentException e) {
+                System.out.println("Проверьте правильность введенного адреса.");
+            }
+        } while (reconnectionAttempt <= MAX_RECONNECTION_ATTEMPTS);
+        return false;
     }
 
-    public boolean exchangeDataWithServer() {
+    public void exchangeDataWithServer() {
         Request request = null;
         Response response = null;
-        do {
+        boolean latestRequestIsDelivered = true;
+
+        while(true) {
             try {
-                String[] commandSplit = cm.readCommand();
-                request = cm.generateRequest(commandSplit); //request = null
-                if (request.isEmpty()) continue;
+                if (!latestRequestIsDelivered) {
+                    request.addToken(serverToken);
+                    if (request.isEmpty()) continue;
+                    send(request);
+                    //getResponse();
+                    //response = getResponse();
+                    byteBuffer.clear();
+                    response = receive();//TODO может get()?
+                    System.out.println(response.getResponseInfo());
+                    latestRequestIsDelivered = true;
+                }
+//                String[] commandSplit = cp.readCommand();
+//                request = cp.generateRequest(commandSplit); //request = null
+//                if (request.isEmpty()) continue;
+////                if (request.getCommand().getCommandType().equals(CommandType.EXECUTE_SCRIPT)) {
+////                    sendRequest(request);
+////                    continue;
+////                }
+//      //          sendRequest(request);
+//
+//                send(request);
+//
+//                byteBuffer.clear();
+//                response = receive();
+//                if (response == null) continue;
+//                System.out.println(response.getResponseInfo());
+
+                String[] commandSplit = cp.readCommand();
+                request = cp.generateRequest(commandSplit);
+                if (request.isEmpty() || request == null) continue;
+                if (request.getCommand().getCommandType().equals(CommandType.EXIT)) break;
+                if (isAuthed) {
+                    request.addToken(serverToken);
+                    request.addInitiator(username);
+                }
 //                if (request.getCommand().getCommandType().equals(CommandType.EXECUTE_SCRIPT)) {
-//                    sendRequest(request);
+//                    processExecuteScriptRequest(request);
 //                    continue;
 //                }
-      //          sendRequest(request);
                 send(request);
-
                 byteBuffer.clear();
-                response = receive();
-                if (response == null) continue;
-                System.out.println(response.getResponseInfo());
-            } catch (InvalidClassException ex) {
-                System.out.println("Произошла ошибка при отправке данных на сервер!");
-            } catch (NotSerializableException exception){
-                System.out.println("Ошибка сереализации");
-            }  catch (ClassNotFoundException exception) {
-                System.out.println("Произошла ошибка при чтении полученных данных!");
-            } catch (IOException exception) {
-                System.out.println("Соединение с сервером разорваноk,k,j!");
-                exception.printStackTrace();
-                try {
-                    connect();
-                } catch (Exception e) {
-                    System.out.println("Ошибка передачи данных. Команда не была доставлена на сервер.");
+                response = receive(); // TODO getResponse();
+                if (request.getCommand().getCommandType().equals(CommandType.AUTH)) {
+                    AuthCommand auth = (AuthCommand) request.getCommand();
+                    if (auth.getAuthType().equals(AuthCommand.AuthType.LOGIN) && response.isOK()) {
+                        serverToken = response.getServerToken();
+                        username = auth.getUsername();
+                         System.out.println("Получен токен: " + serverToken);
+                        isAuthed = true;
+                    }
                 }
+                System.out.println(response.getResponseInfo());
+            } catch (IOException e) {
+                latestRequestIsDelivered = false;
+                isAuthed = false;
+                System.out.println("Потеряно соединение с сервером. Будет выполнена попытка переподключения.");
+                boolean reconnectionSuccess = connect();
+                if (reconnectionSuccess) {
+                    // System.out.println("Требуется повторная авторизация: auth login <username>.");
+                    continue;
+                }
+                break;
+            } catch (ClassNotFoundException e) {
+                System.out.println("Произошла ошибка при чтении полученных данных!");
+                e.printStackTrace();
             }
-        } while (request.isEmpty() || !request.getCommand().getCommandType().equals(CommandType.EXIT) );
-        return false;
+        }
     }
 
 //    public void sendRequest(Request request) throws IOException, ClassNotFoundException {
@@ -132,11 +182,11 @@ public class Client {
 //        }
 //    }
 
-    public void getResponse() throws IOException, ClassNotFoundException {
-        Response response;
-        response = (Response) objectReader.readObject();
-        if (!response.isEmpty()) System.out.println(response.getResponseInfo());
-    }
+//    public void getAndPrintResponse() throws IOException, ClassNotFoundException {
+//        Response response;
+//        response = (Response) objectReader.readObject();
+//        if (!response.isEmpty()) System.out.println(response.getResponseInfo());
+//    }
 
     private void makeByteBufferToRequest(Request request) throws IOException {
         byteBuffer.put(serialize(request));
@@ -184,7 +234,7 @@ public class Client {
 
                         System.out.println("aaaaa");
                         ExecuteScriptCommand execScr = (ExecuteScriptCommand) request.getCommand();
-                        ArrayList<Request> script = cm.executeScript(execScr.getFilename());
+                        ArrayList<Request> script = cp.executeScript(execScr.getFilename());
                         ByteBuffer execScrBuffer = ByteBuffer.allocate(16384);
                         System.out.println("scrsize " + script.size());
                         for (Request cmd : script) {
@@ -237,5 +287,10 @@ public class Client {
             }
         }
         return deserialize();
+    }
+
+    public Response getResponse() throws IOException, ClassNotFoundException {
+        Response response = (Response) objectReader.readObject();
+        return response;
     }
 }

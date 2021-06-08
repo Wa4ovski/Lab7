@@ -9,6 +9,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Server {
     private int port;
@@ -17,12 +19,14 @@ public class Server {
     private InetAddress address;
     private CollectionManager collectionManager;
     private  Scanner scanner;
+
+    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
    // private CommandProcessor cp;
 
     public Server(int port, ServerRequestHandler requestManager) {
         this.port = port;
         this.requestManager = requestManager;
-        collectionManager = requestManager.getManager();
+        collectionManager = requestManager.getManager(); //TODO
     }
 
     public void run() {
@@ -93,6 +97,7 @@ public class Server {
                 response = requestManager.processClientRequest(request);//executeRequest(request);
                // System.out.println(response.getResponseInfo());
                 System.out.println("Команда '" + request.getCommand().toString() + "' выполнена");
+
                 sendResponse(response);
               //  System.out.println(response.getResponseInfo());
             } while (!response.isEmpty());//(response.getResponseCode() != ResponseCode.SERVER_EXIT);

@@ -143,12 +143,14 @@ public class CollectionManager {
             if (!(ifMax || ifMin) || (ifMax && (t.compareTo(collection.last()) > 0)) ||
                 (ifMin && (t.compareTo(collection.last()) > 0))) {
                 collection.add(t);
+              //  return new Response("Добавлен объект: " + t.toString());
             }
-            return new Response("Добавлен объект: " + t.toString());
+
         } finally {
-            collectionLocker.readLock().unlock();
+            collectionLocker.writeLock().unlock();
         }
-       // return new Response("Объект не добален, т. к. он не удовлетворяет условию добавления");
+        return new Response("Добавлен объект: " + t.toString());
+        //return new Response("Объект не добален, т. к. он не удовлетворяет условию добавления");
     }
 
     /**
@@ -221,7 +223,7 @@ public class CollectionManager {
                 return new Response("Элемент с id " + id + " успешно удалён.");
             }
         } finally {
-            collectionLocker.readLock().unlock();
+            collectionLocker.writeLock().unlock();
         }
     }
 
@@ -247,6 +249,28 @@ public class CollectionManager {
 //        Worker.resetId(); // reset the id counter
 //        return new Response("Коллекция успешно очищена.");
 //    }
+    public Response clear(String initiator) {
+        collectionLocker.writeLock().lock();
+        try {
+            ArrayList<Worker> temp = new ArrayList<>(collection);
+            Iterator<Worker> it = temp.iterator();
+            while (it.hasNext()) {
+                try {
+                    Worker t = it.next();
+                    dbHandler.removeWorkerByID(t.getId(), initiator);
+                    collection.remove(t);
+                } catch (InsufficientPermissionException ignored) {
+                    //if the initiator is not the owner - just ignore
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    return new Response("DB Error", false);
+                }
+            }
+        } finally {
+            collectionLocker.writeLock().unlock();
+        }
+        return new Response("Success", true);
+    }
     /**
      * Saves the collection to XML-File via FileManager
      */
@@ -293,16 +317,16 @@ public class CollectionManager {
         //StringBuilder sb = new StringBuilder();
         for (Worker t : collection) {
             if (t.compareTo(worker) < 0) {
-//                try {
-//                    F.add(t);
-//                    dbHandler.removeWorkerByID(t.getId(), );
-//                    Worker.removeFromIdMap(t.getId());
-//                    count += 1;
-//                   // sb.append("Удалён объект: " + t.toString() + '\n');
-//                } catch (InsufficientPermissionException e) {
-//                } catch (SQLException e) {
-//                    e.printStackTrace();
-//                }
+                try {
+                    F.add(t);
+                    dbHandler.removeWorkerByID(t.getId(),initiator);
+                    Worker.removeFromIdMap(t.getId());
+                    count += 1;
+                   // sb.append("Удалён объект: " + t.toString() + '\n');
+                } catch (InsufficientPermissionException e) {
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
 
             }
         }
