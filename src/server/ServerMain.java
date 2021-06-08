@@ -27,7 +27,8 @@ public class ServerMain {
 //            System.err.println("Не найден credentials.txt с данными для входа в базу данных."); /TODO NEED TO FIX READING FROM FILE
 //            System.exit(-1);
 //        }
-        String jdbcURL = "jdbc:postgresql://localhost:2806/studs";
+        String jdbcURL = "jdbc:postgresql://pg:5432/studs";
+        //String jdbcURL = "jdbc:postgresql://localhost:2806/studs";
       //  try {
             username = "s312431";//credentials.nextLine().trim();
             password = "kmj460";//scredentials.nextLine().trim();
@@ -46,14 +47,14 @@ public class ServerMain {
         //CollectionManager.path  = new Scanner(System.in).nextLine();
         CollectionManager cm = new CollectionManager(dbHandler);
         cm.init();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                cm.saveToFile();
-            }
-        });
+//        Runtime.getRuntime().addShutdownHook(new Thread() {
+//            public void run() {
+//                cm.saveToFile();
+//            }
+//        });
         ServerRequestHandler requestManager = new ServerRequestHandler(cm, dbHandler);
         Server server = new Server(PORT, requestManager);
         server.run();
-        cm.saveToFile();
+       // cm.saveToFile();
     }
 }

@@ -18,7 +18,8 @@ public class ServerRequestHandler {
     private DatabaseHandler dbHandler;
     private List<String> tokenList = new LinkedList<>();
     private AuthManager authManager = new AuthManager();
-    private ExecutorService forkJoinPool = ForkJoinPool.commonPool(); ////TODO: not my thread
+    //private ExecutorService forkJoinPool = ForkJoinPool.commonPool(); ////TODO: not my thread
+    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
     private volatile long nextWorkerId;
 
     public ServerRequestHandler(CollectionManager manager) {
@@ -44,7 +45,8 @@ public ServerRequestHandler(CollectionManager manager, DatabaseHandler dbHandler
 
     public Response processClientRequest(Request r) {
         RequestExecutor executor = new RequestExecutor(r);
-        Future<Response> responseFuture = forkJoinPool.submit(executor); //  TODO
+       // Future<Response> responseFuture = forkJoinPool.submit(executor); //  TODO
+        Future<Response> responseFuture = fixedThreadPool.submit(executor);
         while (true) {
             if (responseFuture.isDone()) {
                 try {
@@ -55,7 +57,7 @@ public ServerRequestHandler(CollectionManager manager, DatabaseHandler dbHandler
                     e.printStackTrace();
                 }
             }
-            // Thread.yield();
+             Thread.yield();
         }
     }
 
@@ -100,8 +102,8 @@ public ServerRequestHandler(CollectionManager manager, DatabaseHandler dbHandler
                         else return new Response("Элемент с указанным id не существует.");
                     } catch (SQLException e) {
                         System.out.println("HERE!!!");
-                        //e.printStackTrace();
-                        //dbHandler.rollback();
+                        e.printStackTrace();
+                        dbHandler.rollback();
                         return new Response("Ошибка выполнения запроса", false);
                     } catch (InsufficientPermissionException e) {
                         return new Response("Запрос отклонен: недостаточно прав.");

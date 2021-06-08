@@ -159,9 +159,9 @@ public class Client {
                     continue;
                 }
                 break;
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException | NullPointerException ex) {
                 System.out.println("Произошла ошибка при чтении полученных данных!");
-                e.printStackTrace();
+                ex.printStackTrace();
             }
         }
     }

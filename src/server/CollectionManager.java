@@ -13,14 +13,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class CollectionManager {
     private long nextId;
     private LinkedHashSet<Worker> collectionSet;
-    private TreeSet<Worker> collection = new TreeSet<>();
+    private Set<Worker> collection = new TreeSet<>();
     private static HashMap<String, String> description;
     private String listType;
     private final Date initDate;
     private FileManager fileManager;
     static public String path;
 
-    private ReadWriteLock collectionLocker;
+    //private ReadWriteLock collectionLocker;
     private DatabaseHandler dbHandler;
 
     public CollectionManager(DatabaseHandler dbHandler) {
@@ -33,7 +33,7 @@ public class CollectionManager {
         initDate = new Date();
         description = new HashMap<String, String>();
         listType = collectionSet.getClass().getSimpleName();
-        collectionLocker = new ReentrantReadWriteLock();
+        //collectionLocker = new ReentrantReadWriteLock();
         //File file = new File("");
         //String path = "" + file.getAbsolutePath() + "//src//xmlStorage.xml";
         //fileManager = new FileManager(collectionSet, path);//"C://Java//Lab5//src//xmlStorage.xml");
@@ -61,7 +61,9 @@ public class CollectionManager {
 
     public void init() {
         collectionSet = dbHandler.loadCollectionFromDB();
-        collection.addAll(collectionSet);
+       // Set temp = Collections.synchronizedSet(collectionSet);
+        //collection.addAll(temp);
+        collection = Collections.synchronizedSet(collectionSet);
         //listType = collection.getClass().getSimpleName();
     }
 
@@ -138,19 +140,22 @@ public class CollectionManager {
         }
     }*/
     public Response add(Worker t, boolean ifMax, boolean ifMin) {
-        collectionLocker.writeLock().lock();
-        try{
-            if (!(ifMax || ifMin) || (ifMax && (t.compareTo(collection.last()) > 0)) ||
-                (ifMin && (t.compareTo(collection.last()) > 0))) {
+        //collectionLocker.writeLock().lock();
+  //      try{
+        synchronized (collection) {
+            TreeSet<Worker> temp = new TreeSet<>();
+            temp.addAll(collection);
+            if (!(ifMax || ifMin) || (ifMax && (t.compareTo(temp.last()) > 0)) ||
+                    (ifMin && (t.compareTo(temp.first()) < 0))) {
                 collection.add(t);
-              //  return new Response("Добавлен объект: " + t.toString());
+                  return new Response("Добавлен объект: " + t.toString());
             }
-
-        } finally {
-            collectionLocker.writeLock().unlock();
         }
-        return new Response("Добавлен объект: " + t.toString());
-        //return new Response("Объект не добален, т. к. он не удовлетворяет условию добавления");
+//        } finally {
+//            collectionLocker.writeLock().unlock();
+//        }
+       // return new Response("Добавлен объект: " + t.toString());
+        return new Response("Объект не добален, т. к. он не удовлетворяет условию добавления");
     }
 
     /**
@@ -188,13 +193,14 @@ public class CollectionManager {
         }
     }*/
     public Response updateId(long id, Worker newT) {
-        collectionLocker.writeLock().lock();
-        try {
+//        collectionLocker.writeLock().lock();
+//        try {
+        synchronized (collection) {
             collection.remove(Worker.getWorkerById(id));
             collection.add(newT);
-        }finally {
-            collectionLocker.readLock().unlock();
-        }
+        }//finally {
+//            collectionLocker.writeLock().unlock();
+//        }
         return new Response("Элемент с указанным id успешно обновлён.");
     }
 
@@ -212,8 +218,9 @@ public class CollectionManager {
         }
     }*/
     public Response removeById(long id) {
-        collectionLocker.writeLock().lock();
-        try {
+//        collectionLocker.writeLock().lock();
+//        try {
+        synchronized (collection) {
             Worker worker = collection.stream().filter(w -> w.getId() == id).findFirst().orElse(null);
             if (worker == null) { // if the element is not found remove() returns false
                 return new Response("Элемент с указанным id не найден.");
@@ -222,9 +229,9 @@ public class CollectionManager {
                 Worker.removeFromIdMap(id); // remove the element from (id -> Ticket) hashmap
                 return new Response("Элемент с id " + id + " успешно удалён.");
             }
-        } finally {
-            collectionLocker.writeLock().unlock();
-        }
+        } //finally {
+            //collectionLocker.writeLock().unlock();
+        //}
     }
 
    /* public void showById(long id) {
@@ -250,8 +257,9 @@ public class CollectionManager {
 //        return new Response("Коллекция успешно очищена.");
 //    }
     public Response clear(String initiator) {
-        collectionLocker.writeLock().lock();
-        try {
+//        collectionLocker.writeLock().lock();
+//        try {
+        synchronized (collection) {
             ArrayList<Worker> temp = new ArrayList<>(collection);
             Iterator<Worker> it = temp.iterator();
             while (it.hasNext()) {
@@ -266,14 +274,15 @@ public class CollectionManager {
                     return new Response("DB Error", false);
                 }
             }
-        } finally {
-            collectionLocker.writeLock().unlock();
-        }
+        } //finally {
+            //collectionLocker.writeLock().unlock();
+        //}
         return new Response("Success", true);
     }
     /**
      * Saves the collection to XML-File via FileManager
      */
+   // @Deprecated
     public void saveToFile() {
         if (fileManager.isRead()) {
         collectionSet.clear();
@@ -311,8 +320,9 @@ public class CollectionManager {
     }*/
     public Response removeLower(Worker worker, String initiator) {
         int count = 0;
-        collectionLocker.writeLock().lock();
-        try{
+//        collectionLocker.writeLock().lock();
+//        try{
+        synchronized (collection) {
         LinkedHashSet<Worker> F = new LinkedHashSet<>();
         //StringBuilder sb = new StringBuilder();
         for (Worker t : collection) {
@@ -332,9 +342,9 @@ public class CollectionManager {
         }
         collection.removeAll(F);
         return new Response(String.valueOf(count), true);
-        }finally {
-            collectionLocker.writeLock().unlock();
-        }
+        }//finally {
+         ///   collectionLocker.writeLock().unlock();
+        //}
            // sb.append("Всего удалено объектов:" + count + '\n');
             //return new Response(sb.toString());
     }

@@ -20,7 +20,7 @@ public class Server {
     private CollectionManager collectionManager;
     private  Scanner scanner;
 
-    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
+    //private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
    // private CommandProcessor cp;
 
     public Server(int port, ServerRequestHandler requestManager) {
@@ -58,32 +58,7 @@ public class Server {
     }
 
 
-//public void run() {
-//    System.out.println("Запуск сервера!");
-//    boolean processStatus = true;
-//    Scanner scanner = new Scanner(System.in);
-//    do {
-//        if (!scanner.hasNext()) continue;
-//        String input = scanner.nextLine();
-//        if (input.equals("exit")) {
-//            collectionManager.saveToFile();
-//            System.out.println("Завершение работы сервера...");
-//            System.exit(0);
-//        }
-//        else if (input.equals("save")) {
-//            collectionManager.saveToFile();
-//        }
-//        else {
-//            System.out.println("Неверная команада.");
-//        }
-//
-//    } while (scanner.hasNext());
-//   // Thread thread = new Thread(userInput);
-//    //    thread.start();
-//        while (processStatus) {
-//            processStatus = processingClientRequest();
-//        }
-//}
+
 
     private boolean processingClientRequest(){
         Request request = null;
@@ -92,6 +67,7 @@ public class Server {
             socket = new DatagramSocket(2408);
             Scanner scanner = new Scanner(System.in);
             do {
+
                 request = getRequest();
                 System.out.println("Получена команда '" + request.getCommand().toString() + "'");//
                 response = requestManager.processClientRequest(request);//executeRequest(request);
